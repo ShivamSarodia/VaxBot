@@ -370,8 +370,6 @@ function initCustomGame() {
 
 function initGameSpace() {
     d3.select(".vaxLogoDiv").remove();
-
-    pop = document.getElementById('audio');
     game = true;
 
     d3.select(".actionVax").style("visibility", "visible");
@@ -379,25 +377,7 @@ function initGameSpace() {
 
     d3.select("#vaxShieldText").style("color", "white")
 
-    d3.select(".actionVax").append("text")
-        .attr("class", "vaccineCounterText")
-        .style("font-size", "16px")
-        .style("font-family", "Nunito")
-        .style("font-weight", 300)
-        .style("color", "white")
-        .text("")
-        .style("right", function() {
-            if (numberOfVaccines.toString().length == 1) return "49px"
-            if (numberOfVaccines.toString().length == 2) return "46px"
-
-        })
-
-    d3.select(".vaccineCounterText").text(numberOfVaccines)
-
     initFooter();
-    window.setTimeout(function() {d3.select(".gameMenuBox").style("right", "-10px"); d3.select(".gameVaxLogoDiv").style("left", "-12px")},1)
-
-
 
     vaccinateMode     = false ;
     quarantineMode    = false ;
@@ -467,7 +447,7 @@ function initGameSpace() {
             if (difficultyString == "hard") clickAreaSize = (invisibleParameter-0.3) * nodeSize(node);
 
             return clickAreaSize;
-        })
+        })r
         .attr("fill", "black")
         .attr("opacity", 0)
         .on("click", function(node) {
