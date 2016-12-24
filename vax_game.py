@@ -10,6 +10,8 @@ class GameState:
     graph - main game graph
     status - the vertex property for node status (see enum below)
 
+    orig_num_nodes - original number of nodes
+
     num_vaccines - number of vaccines remaining
     num_outbreaks - number of original infections
 
@@ -42,6 +44,7 @@ class GameState:
         """
 
         self.stage = self.VACCINE
+        self.orig_num_nodes = num_nodes
         self.num_vaccines = num_vaccines
         self.num_outbreaks = num_outbreaks
         self.num_infected = 0
@@ -116,7 +119,7 @@ class GameState:
 
                 while self.num_infected < self.num_outbreaks:
                     n = self.graph.vertex(
-                        random.randint(0, self.graph.num_vertices()))
+                        random.randint(0, self.graph.num_vertices() - 1))
                     if self.status[n] == self.HEALTHY:
                         self.status[n] = self.INFECTED
                         self.num_infected += 1
