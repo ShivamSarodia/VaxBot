@@ -30,7 +30,7 @@ class GameState:
                  num_outbreaks):
         """Initialize a new game.
 
-        num_nodes - number of nodes to add
+        num_nodes - initial number of nodes added
         mean_degree - the mean degree of each node
         rand_edges - number from 0 to 1, higher randomizes the edges more
 
@@ -124,16 +124,55 @@ class GameState:
         elif self.stage == self.QUARANTINE:
             if self.status[node] == self.HEALTHY:
                 self.graph.remove_vertex(node)
-                raise NotImplementedError("not implemented")
-                # TODO: spread, then check for game end
+                if not self._spread_disease(0.35):
+                    self._spread_disease(1)
+
+                # Check if game is over by counting number of uninfected
+                # neighbors of infected nodes.
+                if sum(sum(1 for n in v.all_neighbours()
+                           if self.status[n] != self.INFECTED)
+                       for v in self.graph.vertices()
+                       if self.status[v] == self.INFECTED) == 0:
+                    self.stage = self.DONE
+
             else:
                 raise RuntimeError("can only remove healthy nodes")
 
         elif self.stage == self.DONE:
             raise RuntimeError("game is done")
 
-    def show_graph(self):
-        """Display the graph."""
+    def _spread_disease(self, transmission_rate):
+        """Spread the disease with given transmission rate. Return the number
+        of new infections."""
+
+        to_infect = []
+        for v in self.graph.vertices():
+            if self.status[v] != self.HEALTHY: continue
+
+            neighbors_infected = sum(1 for n in v.all_neighbours()
+                                     if self.status[n] == self.INFECTED)
+
+            if transmission_rate == 1:
+                p_infect = 1 if neighbors_infected else 0
+            else:
+                p_infect = 1 - (1 - transmission_rate) ** neighbors_infected
+
+            if random.random() < p_infect: to_infect.append(v)
+
+        for v in to_infect: self.status[v] = self.INFECTED
+        self.num_infected += len(to_infect)
+        return len(to_infect)
+
+    def display(self):
+        """Display the graph and print game info."""
+
+        if self.stage == self.VACCINE:
+            print("Vaccines remaining: ", self.num_vaccines)
+        elif self.stage == self.QUARANTINE:
+            print("Num infected: ", self.num_infected)
+        elif self.stage == self.DONE:
+            print("Game over!")
+            print("Num infected: ", self.num_infected)
 
         for v in self.graph.vertices():
             if self.status[v] == self.INFECTED: self._color[v] = (1,0,0,1)
@@ -142,5 +181,6 @@ class GameState:
         deg = gt.draw.prop_to_size(self.graph.degree_property_map("total"),
                                    mi=10, ma=30, power=1.1)
         gt.draw.graph_draw(self.graph, vertex_size=deg,
+                           vertex_text=self.graph.vertex_index,
                            vertex_fill_color=self._color,
                            vertex_color=(0,0,0,0.8))
