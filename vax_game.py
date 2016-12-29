@@ -12,6 +12,7 @@ class VaxGame:
     num_outbreaks - number of original infections
 
     num_vaccines - current number of vaccines remaining
+    num_people - current number of individuals altogether
     num_infected - current number of infected individuals
     num_healthy - current number of healthy individuals
 
@@ -65,6 +66,10 @@ class VaxGame:
     @property
     def num_healthy(self):
         return self.graph.number_of_nodes() - self.num_infected
+
+    @property
+    def num_people(self):
+        return self.graph.number_of_nodes()
 
     def _setup_graph(self, num_nodes, mean_degree, rand_edges):
         """Set up the graph based on the given parameters."""
