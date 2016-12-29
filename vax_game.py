@@ -172,7 +172,8 @@ class VaxGame:
     def display(self):
         """Display the graph and print game info."""
 
-        raise NotImplementedError("not updated for networkx")
+        # TODO: Better display, perhaps exporting to JSON and displaying in
+        # Javascript with a server
 
         if self.stage == self.VACCINE:
             print("Vaccines remaining: ", self.num_vaccines)
@@ -182,17 +183,9 @@ class VaxGame:
             print("Game over!")
             print("Num infected: ", self.num_infected)
 
-        # node_sizes = []
-        # node_colors = []
-        # for v in self.graph.vertices():
-        #     if self.status[v] == self.INFECTED: self._color[v] = (1,0,0,1)
-        #     else: self._color[v] = (0.7,0.7,0.7,1)
+        colors = ["red" if self.status[n] == self.INFECTED else "gray"
+                  for n in self.graph.nodes()]
+        deg = self.graph.degree()
+        sizes = [15 * deg[n] ** 2.3 for n in self.graph.nodes()]
 
-        # deg = gt.draw.prop_to_size(self.graph.degree_property_map("total"),
-        #                            mi=10, ma=30, power=1.1)
-        # gt.draw.graph_draw(self.graph, vertex_size=deg,
-        #                    vertex_text=self.graph.vertex_index,
-        #                    vertex_fill_color=self._color,
-        #                    vertex_color=(0,0,0,0.8))
-
-        nx.draw(self.graph)
+        nx.draw(self.graph, node_color=colors, node_size=sizes)
