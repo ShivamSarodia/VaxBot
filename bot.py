@@ -125,7 +125,7 @@ class DistanceBot(UtilBot):
                     score[i] = self.k * deg[i] - np.power(inf_dist[i], self.p)
 
             # Remove unhealthy nodes from consideration by assigning low score
-            min_val = score.min()
+            min_val = score.min() - 1
             for i in range(len(self.game.status)):
                 if self.game.status[i] != self.game.HEALTHY:
                     score[i] = min_val
