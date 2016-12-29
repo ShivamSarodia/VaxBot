@@ -1,5 +1,7 @@
+import networkx as nx
 import numpy as np
 import random
+import time
 
 from vax_game import VaxGame
 
@@ -23,15 +25,23 @@ class Bot:
         """Make one click on the given VaxGame object."""
         raise NotImplementedError
 
-def run(BotType, repeat=1, game_generator=VaxGame.easy_game):
-    """Run the given bot repeatedly, and return a list of the number saved
-    in each run.
+def run(BotType, repeat=1, game_generator=VaxGame.easy_game, show_stats=False):
+    """Run the given bot repeatedly, and return a numpy array of the number
+    saved in each run.
 
     repeat - number of times to run the bot
     game_generator - a function that returns a VaxGame which the bot will play
 
     """
-    return [BotType(game_generator()).play() for i in range(repeat)]
+    start_time = time.time()
+
+    runs = np.array([BotType(game_generator()).play() for _ in range(repeat)])
+    if show_stats:
+        print("Mean:", runs.mean())
+        print("StdErr:", runs.std() / np.sqrt(repeat))
+        print("Time: ", time.time() - start_time)
+
+    return runs
 
 class UtilBot(Bot):
     """Abstract class defining some useful bot utilities."""
@@ -94,25 +104,31 @@ class DistanceBot(UtilBot):
         return cls
 
     def turn(self):
-        raise NotImplementedError("not updated to networkx")
-
         if self.game.stage == self.game.VACCINE:
             self.high_degree_click()
         else:
-            dist = self.game.graph.new_vertex_property("int", 100)
-            score = self.game.graph.new_vertex_property("float", 0)
+            # distance to nearest infected node, start very high
+            inf_dist = [100] * self.game.orig_num_nodes
+            paths = nx.shortest_path_length(self.game.graph)
 
-            infected = [v for v in self.game.graph.vertices()
-                        if self.game.status[v] == self.game.INFECTED]
-            for v in self.game.graph.vertices():
-                if self.game.status[v] == self.game.INFECTED: continue
+            for n in paths:
+                if self.game.status[n] == self.game.HEALTHY: continue
+                for v in paths[n]:
+                    inf_dist[v] = min(inf_dist[v], paths[n][v])
 
-                # Get the minimum distance from v to an infected node
-                dist[v] = topo.shortest_distance(self.game.graph, v,
-                                                 infected).min()
+            deg = self.game.graph.degree()
 
-            deg = self.game.graph.degree_property_map("total")
-            score.a = self.k * deg.a - np.power(dist.a, self.p)
+            # Calculate score for each healthy node
+            score = np.zeros(self.game.orig_num_nodes)
+            for i in range(self.game.orig_num_nodes):
+                if self.game.status[i] == self.game.HEALTHY:
+                    score[i] = self.k * deg[i] - np.power(inf_dist[i], self.p)
 
-            i = np.random.choice(np.where(score.a == score.a.max())[0])
-            self.game.click(self.game.graph.vertex(i))
+            # Remove unhealthy nodes from consideration by assigning low score
+            min_val = score.min()
+            for i in range(len(self.game.status)):
+                if self.game.status[i] != self.game.HEALTHY:
+                    score[i] = min_val
+
+            i = np.random.choice(np.where(score == score.max())[0])
+            self.game.click(i)
