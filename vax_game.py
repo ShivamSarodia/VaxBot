@@ -1,7 +1,7 @@
 import networkx as nx
 import random
 
-class GameState:
+class VaxGame:
     """Stores the state of the Vax game, including the main graph.
 
     stage - stage of main game (see enum below)
@@ -49,17 +49,17 @@ class GameState:
 
     @classmethod
     def easy_game(cls):
-        """Generate and return an easy GameState object."""
+        """Generate and return an easy VaxGame object."""
         return cls(50, 3, 0.1, 5, 1)
 
     @classmethod
     def medium_game(cls):
-        """Generate and return a medium GameState object."""
+        """Generate and return a medium VaxGame object."""
         return cls(75, 4, 0.1, 7, 2)
 
     @classmethod
     def hard_game(cls):
-        """Generate and return a hard GameState object."""
+        """Generate and return a hard VaxGame object."""
         raise NotImplementedError("refusers unimplemented")
 
     @property

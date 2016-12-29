@@ -1,14 +1,14 @@
 import numpy as np
 import random
 
-from vax_game import GameState
+from vax_game import VaxGame
 
 class Bot:
     """Abstract class for a Vax bot. Users must implement the turn()
     function, or can alternatively override the play() function."""
 
     def __init__(self, game):
-        """Initialize the bot with the given GameState object"""
+        """Initialize the bot with the given VaxGame object"""
         self.game = game
 
     def play(self):
@@ -20,15 +20,15 @@ class Bot:
         return self.game.orig_num_nodes - self.game.num_infected
 
     def turn(self):
-        """Make one click on the given GameState object."""
+        """Make one click on the given VaxGame object."""
         raise NotImplementedError
 
-def run(BotType, repeat=1, game_generator=GameState.easy_game):
+def run(BotType, repeat=1, game_generator=VaxGame.easy_game):
     """Run the given bot repeatedly, and return a list of the number saved
     in each run.
 
     repeat - number of times to run the bot
-    game_generator - a function that returns a GameState which the bot will play
+    game_generator - a function that returns a VaxGame which the bot will play
 
     """
     return [BotType(game_generator()).play() for i in range(repeat)]
