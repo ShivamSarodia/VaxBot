@@ -1,4 +1,3 @@
-import graph_tool.topology as topo
 import numpy as np
 import random
 
@@ -34,18 +33,17 @@ def run(BotType, repeat=1, game_generator=GameState.easy_game):
     """
     return [BotType(game_generator()).play() for i in range(repeat)]
 
-
 class UtilBot(Bot):
     """Abstract class defining some useful bot utilities."""
 
     def high_degree_click(self):
         """Click any node of highest degree."""
-        i = np.argmax(self.game.graph.degree_property_map("total").a)
-        self.game.click(self.game.graph.vertex(i))
+        deg = self.game.graph.degree()
+        self.game.click(max(deg, key=lambda x: deg[x]))
 
     def random_click(self):
         """Randomly click a healthy node."""
-        vs = [v for v in self.game.graph.vertices()
+        vs = [v for v in self.game.graph
               if self.game.status[v] == self.game.HEALTHY]
         self.game.click(random.choice(vs))
 
@@ -76,10 +74,10 @@ class NearbyBot(UtilBot):
             def is_ok(v):
                 """Is this node healthy and has infected neighbors"""
                 return (self.game.status[v] == self.game.HEALTHY and
-                        sum(1 for n in v.all_neighbours()
-                           if self.game.status[n] == self.game.INFECTED))
+                        any(self.game.status[n] == self.game.INFECTED
+                            for n in self.game.graph[v]))
 
-            vs = [v for v in self.game.graph.vertices() if is_ok(v)]
+            vs = [v for v in self.game.graph.nodes() if is_ok(v)]
             self.game.click(random.choice(vs))
 
 class DistanceBot(UtilBot):
@@ -96,6 +94,8 @@ class DistanceBot(UtilBot):
         return cls
 
     def turn(self):
+        raise NotImplementedError("not updated to networkx")
+
         if self.game.stage == self.game.VACCINE:
             self.high_degree_click()
         else:
