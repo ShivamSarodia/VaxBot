@@ -24,12 +24,15 @@ class Bot:
         """Make one click on the given GameState object."""
         raise NotImplementedError
 
-def run(BotType, repeat=1):
-    """Run the given bot `repeat` number of times on an easy game, and
-    return a list of the number saved in each run.
-    """
-    return [BotType(GameState.medium_game()).play() for i in range(repeat)]
+def run(BotType, repeat=1, game_generator=GameState.easy_game):
+    """Run the given bot repeatedly, and return a list of the number saved
+    in each run.
 
+    repeat - number of times to run the bot
+    game_generator - a function that returns a GameState which the bot will play
+
+    """
+    return [BotType(game_generator()).play() for i in range(repeat)]
 
 
 class UtilBot(Bot):
