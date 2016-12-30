@@ -38,6 +38,7 @@ def run(BotType, repeat=1, game_generator=VaxGame.easy_game, show_stats=False):
     runs = np.array([BotType(game_generator()).play() for _ in range(repeat)])
     if show_stats:
         print("Mean:", runs.mean())
+        print("Median:", np.median(runs))
         print("StdErr:", runs.std() / np.sqrt(repeat))
         print("Time: ", time.time() - start_time)
 
@@ -131,4 +132,33 @@ class DistanceBot(UtilBot):
                     score[i] = min_val
 
             i = np.random.choice(np.where(score == score.max())[0])
+            self.game.click(i)
+
+class PathBot(UtilBot):
+    """For vaccination phase, remove nodes of highest degree. For quarantine
+    phase, remove a node that is contained in the most paths between an infected
+    and healthy node."""
+
+    def turn(self):
+        if self.game.stage == self.game.VACCINE:
+            self.high_degree_click()
+        else:
+            # For each node, count the number of times it appears in a shortest
+            # path from an infected node to a healthy node.
+
+            counts = np.zeros(self.game.orig_num_nodes)
+            paths = nx.shortest_path(self.game.graph)
+
+            for n1 in self.game.graph.nodes():
+                if self.game.status[n1] == self.game.INFECTED:
+                    # For all healthy nodes n2 reachable from n1
+                    for n2 in paths[n1]:
+                        if self.game.status[n2] == self.game.HEALTHY:
+                            for node in paths[n1][n2]: counts[node] += 1
+
+            # Remove unhealthy nodes from consideration by assigning low score
+            for n in self.game.graph.nodes():
+                if self.game.status[n] != self.game.HEALTHY: counts[n] = -1
+
+            i = np.random.choice(np.where(counts == counts.max())[0])
             self.game.click(i)
